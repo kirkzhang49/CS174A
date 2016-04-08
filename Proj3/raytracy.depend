@@ -1,0 +1,18 @@
+# depslib dependency file v1.0
+1449287839 source:c:\users\kaikai\desktop\174a\raytracy\template-rt.cpp
+	"matm.h"
+	<iostream>
+	<fstream>
+	<sstream>
+	<string>
+	<vector>
+	<cstdlib>
+
+1447829302 c:\users\kaikai\desktop\174a\raytracy\matm.h
+	<stdio.h>
+	"vecm.h"
+
+1449114529 c:\users\kaikai\desktop\174a\raytracy\vecm.h
+	<iostream>
+	<cmath>
+

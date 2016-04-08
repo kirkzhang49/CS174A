@@ -1,0 +1,11 @@
+NEAR <n> 
+LEFT <l> 
+RIGHT <r> 
+BOTTOM <b> 
+TOP <t> 
+RES <x> <y> 
+SPHERE <name> <pos x> <pos y> <pos z> <scl x> <scl y> <scl z> <r> <g> <b> <Ka> <Kd> <Ks> <Kr> <n> 
+LIGHT <name> <pos x> <pos y> <pos z> <Ir> <Ig> <Ib> 
+BACK <r> <g > <b> 
+AMBIENT <Ir> <Ig> <Ib> 
+OUTPUT <name>
