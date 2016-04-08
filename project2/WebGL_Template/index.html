@@ -1,0 +1,124 @@
+<!-- 
+// *******************************************************
+// CS 174a Graphics Example Code
+index.html - The web page document containing the canvas (drawing surface), that launches your javascript files, and hides the vertex and fragment shader programs in strings. //-->
+<!DOCTYPE html>
+<html>
+<head>
+<script id="vertex-shader" type="x-shader/x-vertex">
+// *******************************************************
+// The following string is loaded by our javascript and then used as the Vertex Shader program.  Our javascript sends this code to the graphics card at runtime, where on each run it gets 
+// compiled and linked there.  Thereafter, all of your calls to draw shapes will launch the vertex shader program once per vertex in the shape (three times per triangle), sending results on 
+// to the next phase.  The purpose of this program is to calculate the final resting place of vertices in screen coordinates; each of them starts out in local object coordinates.
+
+precision mediump float;
+
+attribute vec3 vPosition, vNormal;
+attribute vec2 vTexCoord;
+varying vec2 fTexCoord;
+varying vec3 N, L, E, pos;
+
+uniform bool SOLID, GOURAUD, COLOR_NORMALS;
+uniform vec4 SOLID_COLOR;
+varying vec4 VERTEX_COLOR;
+
+uniform mat4 camera_transform, camera_model_transform, projection_camera_model_transform;
+uniform mat3 camera_model_transform_normal;
+
+uniform vec4 lightPosition, lightColor, color;
+uniform float ambient, chalkiness, shininess, smoothness;
+
+void main()
+{
+    N = normalize( camera_model_transform_normal * vNormal );
+	
+	vec4 object_space_pos = vec4(vPosition, 1.0);
+    gl_Position = projection_camera_model_transform * object_space_pos;
+	
+	if( SOLID )
+	{
+		VERTEX_COLOR = SOLID_COLOR;
+		return;
+	}
+	
+	if( COLOR_NORMALS )
+	{
+		VERTEX_COLOR = abs( vec4( N, 1.0 ) );
+		return;
+	}
+	
+    pos = ( camera_model_transform * object_space_pos ).xyz;
+	E = -normalize(pos);
+    L = normalize( ( camera_transform * lightPosition ).xyz - lightPosition.w * pos );		// Use w = 0 for a directional light -- a vector instead of a point.    
+
+	if( GOURAUD )
+	{
+		vec3 H = normalize( L + E );
+
+		float diffuse  = max( dot(L, N), 0.0 );
+		float specular = pow( max(dot(N, H), 0.0), smoothness );
+
+		VERTEX_COLOR = color * ( ambient + chalkiness * diffuse ) + lightColor * ( shininess * specular );
+	}  
+	fTexCoord = vTexCoord;  
+}
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+// *******************************************************
+// Likewise, the following string is loaded by our javascript and then used as the Fragment Shader program, which gets sent to the graphics card at runtime.  The fragment shader runs 
+// once all vertices in a triangle / element finish their vertex shader programs, and thus have finished finding out where they land on the screen.  The fragment shader fills in (shades)
+// every pixel (fragment) overlapping where the triangle landed.  At each pixel it interpolates different values from the three extreme points of the triangle, and uses them in formulas
+// to determine color.
+
+
+precision mediump float;
+
+uniform vec4 lightColor, color;
+uniform float ambient, chalkiness, shininess, smoothness;
+
+varying vec2 fTexCoord;
+varying vec3 N, L, E, pos;
+
+uniform sampler2D texture; 
+uniform bool SOLID, GOURAUD, COLOR_NORMALS, USE_TEXTURE;
+varying vec4 VERTEX_COLOR;
+
+void main()
+{    
+	if( SOLID || GOURAUD || COLOR_NORMALS )
+	{
+		gl_FragColor = VERTEX_COLOR;
+		return;
+	}
+	vec3 H = normalize( L + E );
+
+	float diffuse  = max( dot(L, N), 0.0 );
+	float specular = pow( max(dot(N, H), 0.0), smoothness );
+	
+	vec4 tex_color = texture2D( texture, fTexCoord );
+	if( tex_color.w < .2 && USE_TEXTURE ) discard;
+	
+	gl_FragColor =  (USE_TEXTURE ? tex_color : vec4(1,1,1,1)) * color * (  ambient + chalkiness * diffuse ) + lightColor * ( shininess * specular );
+}
+</script>
+
+<!-- 
+// *******************************************************
+Javascript "include" files.  Any code in them gets executed as part of the page loading.
+//-->
+
+
+<script type="text/javascript" src="../Common/initShaders.js"></script>
+<script type="text/javascript" src="../Common/underscore.js"></script>
+<script type="text/javascript" src="../Common/shortcut.js"></script>
+<script type="text/javascript" src="../Common/MV.js"></script>
+<script type="text/javascript" src="../Common/shape.js"></script>
+<script type="text/javascript" src="../Common/webgl-obj-loader.js"></script>
+<script type="text/javascript" src="../Common/GL_Context.js"></script>
+<script type="text/javascript" src="animation.js"></script>
+
+</head><body>
+<h1>Using WASD to control the pokemon to catch!</h1>
+<canvas id="gl-canvas" width="940" height="560"></canvas>
+</body></html>
